@@ -30,7 +30,7 @@ final class SettingsViewController: UIViewController {
     weak var delegate: SettingsViewControllerDelegate!
     
     var mainViewColor = UIColor.white
-    var currentColor: CIColor!
+    private var currentColor: CIColor!
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -38,6 +38,7 @@ final class SettingsViewController: UIViewController {
 
         currentColor = CIColor(color: mainViewColor)
         setupSlider()
+        setupValue()
         
         redTF.delegate = self
         greenTF.delegate = self
@@ -48,19 +49,11 @@ final class SettingsViewController: UIViewController {
         super.touchesBegan(touches, with: event)
         view.endEditing(true)
     }
-    
-    @IBAction func colorSliderAction(_ sender: UISlider) {
-        if sender.tag == 0 {
-            redColorValue.text = String(format: "%.1f", sender.value)
-            redTF.text = String(format: "%.1f", sender.value)
-        } else if sender.tag == 1 {
-            greenColorValue.text = String(format: "%.1f", sender.value)
-            greenTF.text = String(format: "%.1f", sender.value)
-        } else {
-            blueColorValue.text = String(format: "%.1f", sender.value)
-            blueTF.text = String(format: "%.1f", sender.value)
-        }
+    @IBAction func colorSliderAction() {
+        setupValue()
+        changeColor()
     }
+    
     
     @IBAction func doneButtonPressed() {
         delegate.sendColor(colorView.backgroundColor ?? .white)
@@ -84,6 +77,17 @@ final class SettingsViewController: UIViewController {
         )
     }
     
+    private func setupValue() {
+        redColorValue.text = String(format: "%.1f", redColorSlider.value)
+        redTF.text = String(format: "%.1f", redColorSlider.value)
+        
+        greenColorValue.text = String(format: "%.1f", greenColorSlider.value)
+        greenTF.text = String(format: "%.1f", greenColorSlider.value)
+        
+        blueColorValue.text = String(format: "%.1f", blueColorSlider.value)
+        blueTF.text = String(format: "%.1f", blueColorSlider.value)
+    }
+    
     private func changeColor() {
         colorView.backgroundColor = UIColor(
             red: CGFloat(redColorSlider.value),
@@ -94,7 +98,7 @@ final class SettingsViewController: UIViewController {
     }
     
     private func updateColorValue(textField: UITextField, slider: UISlider, label: UILabel) {
-        guard let value = Float(textField.text ?? "0.5") else {
+        guard let value = Float(textField.text ?? "") else {
             slider.value = 0.5
             label.text = "0.5"
             textField.text = "0.5"
@@ -102,11 +106,12 @@ final class SettingsViewController: UIViewController {
             return
         }
         
-        if value > 1 || value < 1{
+        if value > 1 || value < -1 {
             setupAlert(title: "Неверное значение", message: "Введите число в пределах от -1 до 1")
             slider.value = 0.5
             label.text = "0.5"
             textField.text = "0.5"
+            changeColor()
         } else {
             slider.value = value
             label.text = String(value)
